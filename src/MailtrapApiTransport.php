@@ -11,8 +11,12 @@ namespace yna\mailtrap;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\Envelope;
+use Symfony\Component\Mailer\Exception\TransportException;
+use Symfony\Component\Mailer\Header\MetadataHeader;
+use Symfony\Component\Mailer\Header\TagHeader;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractApiTransport;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -37,6 +41,19 @@ class MailtrapApiTransport extends AbstractApiTransport
     public const HOST_SANDBOX = 'sandbox.api.mailtrap.io';
 
     /**
+     * @var string[] Headers that already have a dedicated field in the payload.
+     */
+    private const HEADERS_TO_BYPASS = [
+        'from',
+        'to',
+        'cc',
+        'bcc',
+        'subject',
+        'content-type',
+        'sender',
+    ];
+
+    /**
      * @param string                        $token      API token of the sending domain
      * @param int|null                      $inboxId    Sandbox inbox to deliver into, or null
      * @param string|null                   $host       Host without a scheme, or null to autodetect
@@ -45,7 +62,7 @@ class MailtrapApiTransport extends AbstractApiTransport
      * @param LoggerInterface|null          $logger
      */
     public function __construct(
-        private string $token,
+        #[\SensitiveParameter] private string $token,
         private ?int $inboxId = null,
         private ?string $host = null,
         ?HttpClientInterface $client = null,
@@ -131,7 +148,79 @@ class MailtrapApiTransport extends AbstractApiTransport
      */
     private function getPayload(Email $email, Envelope $envelope): array
     {
-        // Stage 2.2.
+        $payload = [
+            'from' => self::encodeAddress($envelope->getSender()),
+            'to' => self::encodeAddresses($email->getTo()),
+            'cc' => self::encodeAddresses($email->getCc()),
+            'bcc' => self::encodeAddresses($email->getBcc()),
+            'subject' => $email->getSubject(),
+            'text' => $email->getTextBody(),
+            'html' => $email->getHtmlBody(),
+            'attachments' => $this->getAttachments($email),
+        ];
+
+        foreach ($email->getHeaders()->all() as $name => $header) {
+            if (in_array($name, self::HEADERS_TO_BYPASS, true)) {
+                continue;
+            }
+
+            if ($header instanceof TagHeader) {
+                if (isset($payload['category'])) {
+                    throw new TransportException('Mailtrap allows only one category per email.');
+                }
+
+                $payload['category'] = $header->getValue();
+                continue;
+            }
+
+            if ($header instanceof MetadataHeader) {
+                $payload['custom_variables'][$header->getKey()] = $header->getValue();
+                continue;
+            }
+
+            $payload['headers'][$header->getName()] = $header->getBodyAsString();
+        }
+
+        return $payload;
+    }
+
+    /**
+     * Converts a list of addresses into Mailtrap's format.
+     *
+     * @param Address[] $addresses
+     *
+     * @return array[]
+     */
+    private static function encodeAddresses(array $addresses): array
+    {
+        return array_map([self::class, 'encodeAddress'], $addresses);
+    }
+
+    /**
+     * Converts one address into Mailtrap's format.
+     *
+     * @param Address $address
+     *
+     * @return array
+     */
+    private static function encodeAddress(Address $address): array
+    {
+        return array_filter([
+            'email' => $address->getEncodedAddress(),
+            'name' => $address->getName(),
+        ]);
+    }
+
+    /**
+     * Converts the message attachments into Mailtrap's format.
+     *
+     * @param Email $email The message itself: subject, bodies, recipients, attachments
+     *
+     * @return array[]
+     */
+    private function getAttachments(Email $email): array
+    {
+        // Stage 2.3.
         return [];
     }
 }
