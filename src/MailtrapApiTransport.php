@@ -57,9 +57,9 @@ class MailtrapApiTransport extends AbstractApiTransport
     ];
 
     /**
-     * @param string                        $token      API token of the sending domain
-     * @param int|null                      $inboxId    Sandbox inbox to deliver into, or null
-     * @param string|null                   $host       Host without a scheme, or null to autodetect
+     * @param string                        $token        API token of the sending domain
+     * @param int|null                      $inboxId      Sandbox inbox to deliver into, or null
+     * @param string|null                   $endpointHost Host without a scheme, or null
      * @param HttpClientInterface|null      $client
      * @param EventDispatcherInterface|null $dispatcher
      * @param LoggerInterface|null          $logger
@@ -67,7 +67,7 @@ class MailtrapApiTransport extends AbstractApiTransport
     public function __construct(
         #[\SensitiveParameter] private string $token,
         private ?int $inboxId = null,
-        private ?string $host = null,
+        private ?string $endpointHost = null,
         ?HttpClientInterface $client = null,
         ?EventDispatcherInterface $dispatcher = null,
         ?LoggerInterface $logger = null
@@ -150,8 +150,8 @@ class MailtrapApiTransport extends AbstractApiTransport
      */
     private function resolveHost(): string
     {
-        if ($this->host !== null && $this->host !== '') {
-            return $this->host;
+        if ($this->endpointHost !== null && $this->endpointHost !== '') {
+            return $this->endpointHost;
         }
 
         return $this->inboxId !== null ? self::HOST_SANDBOX : self::HOST_LIVE;
