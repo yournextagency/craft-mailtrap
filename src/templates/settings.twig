@@ -1,0 +1,33 @@
+{% import "_includes/forms" as forms %}
+
+{{ forms.autosuggestField({
+    required: true,
+    label: "API Token"|t('mailtrap'),
+    instructions: "The API token of your Mailtrap sending domain. Its full value is shown only once, when it is created or reset."|t('mailtrap'),
+    id: 'apiToken',
+    name: 'apiToken',
+    suggestEnvVars: true,
+    value: adapter.apiToken,
+    errors: adapter.getErrors('apiToken')
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Endpoint"|t('mailtrap'),
+    instructions: "Leave this empty to use the transactional stream. Set it to `https://bulk.api.mailtrap.io` to send over the bulk stream."|t('mailtrap'),
+    id: 'endpoint',
+    name: 'endpoint',
+    suggestEnvVars: true,
+    placeholder: 'https://send.api.mailtrap.io',
+    value: adapter.endpoint,
+    errors: adapter.getErrors('endpoint')
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Inbox ID"|t('mailtrap'),
+    instructions: "Set this to deliver into a Mailtrap sandbox inbox instead of to real recipients. Leave it empty in production."|t('mailtrap'),
+    id: 'inboxId',
+    name: 'inboxId',
+    suggestEnvVars: true,
+    value: adapter.inboxId,
+    errors: adapter.getErrors('inboxId')
+}) }}

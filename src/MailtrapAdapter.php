@@ -87,6 +87,16 @@ class MailtrapAdapter extends BaseTransportAdapter
     /**
      * @inheritdoc
      */
+    public function getSettingsHtml(): ?string
+    {
+        return Craft::$app->getView()->renderTemplate('mailtrap/settings', [
+            'adapter' => $this,
+        ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function defineTransport(): array|AbstractTransport
     {
         $endpoint = App::parseEnv($this->endpoint);
