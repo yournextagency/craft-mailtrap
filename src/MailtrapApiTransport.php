@@ -11,6 +11,7 @@ namespace yna\mailtrap;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\Envelope;
+use Symfony\Component\Mailer\Exception\HttpTransportException;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\Header\MetadataHeader;
 use Symfony\Component\Mailer\Header\TagHeader;
@@ -18,6 +19,8 @@ use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractApiTransport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -102,10 +105,42 @@ class MailtrapApiTransport extends AbstractApiTransport
         Email $email,
         Envelope $envelope
     ): ResponseInterface {
-        return $this->client->request('POST', $this->getEndpoint(), [
+        $response = $this->client->request('POST', $this->getEndpoint(), [
             'json' => $this->getPayload($email, $envelope),
             'auth_bearer' => $this->token,
         ]);
+
+        try {
+            $statusCode = $response->getStatusCode();
+            $result = $response->toArray(false);
+        } catch (DecodingExceptionInterface $e) {
+            throw new HttpTransportException(
+                'Mailtrap returned a response that is not JSON.',
+                $response,
+                0,
+                $e
+            );
+        } catch (TransportExceptionInterface $e) {
+            throw new HttpTransportException(
+                'Could not reach the Mailtrap server.',
+                $response,
+                0,
+                $e
+            );
+        }
+
+        if (200 !== $statusCode) {
+            throw new HttpTransportException(
+                sprintf(
+                    'Mailtrap rejected the message: "%s" (status code %d).',
+                    implode(', ', (array) ($result['errors'] ?? ['no error message'])),
+                    $statusCode
+                ),
+                $response
+            );
+        }
+
+        return $response;
     }
 
     /**
