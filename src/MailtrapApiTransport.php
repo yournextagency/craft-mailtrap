@@ -220,7 +220,34 @@ class MailtrapApiTransport extends AbstractApiTransport
      */
     private function getAttachments(Email $email): array
     {
-        // Stage 2.3.
-        return [];
+        $attachments = [];
+
+        foreach ($email->getAttachments() as $attachment) {
+            $headers = $attachment->getPreparedHeaders();
+            $filename = $headers->getHeaderParameter('Content-Disposition', 'filename');
+            $disposition = $headers->getHeaderBody('Content-Disposition');
+            $contentType = $headers->get('Content-Type');
+
+            $type = $contentType !== null
+                ? $contentType->getBody()
+                : 'application/octet-stream';
+
+            $item = [
+                'content' => $attachment->bodyToString(),
+                'type' => $type,
+                'filename' => $filename,
+                'disposition' => $disposition,
+            ];
+
+            if ('inline' === $disposition) {
+                $item['content_id'] = $attachment->hasContentId()
+                    ? $attachment->getContentId()
+                    : $filename;
+            }
+
+            $attachments[] = $item;
+        }
+
+        return $attachments;
     }
 }
