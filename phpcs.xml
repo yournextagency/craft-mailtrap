@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<ruleset name="craft-mailtrap">
+    <description>Checks the plugin sources against the YNA standard.</description>
+
+    <file>src</file>
+    <file>tests</file>
+
+    <exclude-pattern>vendor/*</exclude-pattern>
+
+    <rule ref="YNA"/>
+</ruleset>
