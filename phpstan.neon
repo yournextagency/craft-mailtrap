@@ -1,0 +1,14 @@
+includes:
+    - vendor/craftcms/phpstan/phpstan.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests
+    ignoreErrors:
+        # AbstractHttpTransport declares $client as nullable, but its constructor always
+        # fills it in: either with the client we pass or with one it creates itself.
+        -
+            message: '#Cannot call method request\(\) on Symfony\\Contracts\\HttpClient\\HttpClientInterface\|null#'
+            path: src/MailtrapApiTransport.php

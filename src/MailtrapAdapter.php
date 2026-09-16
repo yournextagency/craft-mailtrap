@@ -74,6 +74,8 @@ class MailtrapAdapter extends BaseTransportAdapter
 
     /**
      * @inheritdoc
+     *
+     * @return array<int, array<int|string, mixed>>
      */
     public function defineRules(): array
     {
@@ -96,6 +98,8 @@ class MailtrapAdapter extends BaseTransportAdapter
 
     /**
      * @inheritdoc
+     *
+     * @return array<string, mixed>|AbstractTransport
      */
     public function defineTransport(): array|AbstractTransport
     {

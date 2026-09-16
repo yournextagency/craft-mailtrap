@@ -179,7 +179,7 @@ class MailtrapApiTransport extends AbstractApiTransport
      * @param Email    $email    The message itself: subject, bodies, recipients, attachments
      * @param Envelope $envelope Who the message is really sent from and to
      *
-     * @return array
+     * @return array<string, mixed>
      */
     private function getPayload(Email $email, Envelope $envelope): array
     {
@@ -224,7 +224,7 @@ class MailtrapApiTransport extends AbstractApiTransport
      *
      * @param Address[] $addresses
      *
-     * @return array[]
+     * @return array<int, array<string, string>>
      */
     private static function encodeAddresses(array $addresses): array
     {
@@ -236,7 +236,7 @@ class MailtrapApiTransport extends AbstractApiTransport
      *
      * @param Address $address
      *
-     * @return array
+     * @return array<string, string>
      */
     private static function encodeAddress(Address $address): array
     {
@@ -251,7 +251,7 @@ class MailtrapApiTransport extends AbstractApiTransport
      *
      * @param Email $email The message itself: subject, bodies, recipients, attachments
      *
-     * @return array[]
+     * @return array<int, array<string, string>>
      */
     private function getAttachments(Email $email): array
     {

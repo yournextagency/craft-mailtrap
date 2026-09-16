@@ -188,7 +188,7 @@ class MailtrapApiTransportTest extends TestCase
      * @param int|null    $inboxId
      * @param string|null $endpointHost
      *
-     * @return array
+     * @return array<string, mixed>
      */
     private function capture(
         Email $email,
