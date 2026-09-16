@@ -17,7 +17,6 @@ use Symfony\Component\Mailer\Header\MetadataHeader;
 use Symfony\Component\Mailer\Header\TagHeader;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Mime\Part\DataPart;
 use yna\mailtrap\MailtrapApiTransport;
 
 /**
@@ -299,15 +298,12 @@ class MailtrapApiTransportTest extends TestCase
      */
     public function testInlineAttachmentKeepsItsOwnContentId(): void
     {
-        $part = new DataPart('image bytes', 'logo', 'image/png');
-        $part->asInline();
+        $email = $this->message()->embed('image bytes', 'logo', 'image/png');
 
-        // symfony/mime 6.0 has no public setter: asking for the id generates and stores one.
-        // Reading it here is what makes hasContentId() true across every supported version.
-        $contentId = $part->getContentId();
-
-        $email = $this->message();
-        $email->addPart($part);
+        // No supported version of symfony/mime has a portable setter for the content id:
+        // asking the part for one generates and stores it, which is what makes
+        // hasContentId() true. embed() and getAttachments() exist all the way back to 6.0.
+        $contentId = $email->getAttachments()[0]->getContentId();
 
         $payload = $this->capture($email)['payload'];
 
