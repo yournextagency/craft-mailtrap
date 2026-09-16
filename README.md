@@ -69,6 +69,8 @@ so put it in your `.env` file right away.
 | **Endpoint** | No | Defaults to `https://send.api.mailtrap.io`. Set it to `https://bulk.api.mailtrap.io` to send over the bulk stream. |
 | **Inbox ID** | No | When set, mail is delivered to that Mailtrap sandbox inbox instead of to real recipients. |
 
+Endpoint and Inbox ID describe different destinations, so set one or the other, not both.
+
 > **Tip:** All three settings can be set to environment variables. See
 > [Environmental Configuration](https://craftcms.com/docs/5.x/configure.html) in the
 > Craft docs to learn more about that.

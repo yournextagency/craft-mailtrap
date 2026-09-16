@@ -76,7 +76,11 @@ class MailtrapApiTransport extends AbstractApiTransport
     }
 
     /**
-     * Returns the DSN Symfony prints in logs and error messages; it is never used to send.
+     * Returns the DSN that identifies this transport.
+     *
+     * Symfony puts the string into the MessageEvent it dispatches before every send, so
+     * listeners can tell which transport is about to run; it also makes sandbox runs
+     * distinguishable from live ones after the fact. It is never parsed back into a request.
      *
      * @return string
      */
@@ -161,8 +165,11 @@ class MailtrapApiTransport extends AbstractApiTransport
     }
 
     /**
-     * Returns the full URL to POST the message to, with the inbox id appended to the path
-     * when delivering into a sandbox.
+     * Returns the full URL to POST the message to.
+     *
+     * An inbox id is appended to the path whenever one is set, including alongside an
+     * explicitly configured host. Those two settings describe different destinations, so
+     * combining them yields an address Mailtrap will reject.
      *
      * @return string
      */
