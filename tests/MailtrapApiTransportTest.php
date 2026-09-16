@@ -11,6 +11,7 @@ namespace yna\mailtrap\tests;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\Mailer\Exception\HttpTransportException;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\Header\MetadataHeader;
 use Symfony\Component\Mailer\Header\TagHeader;
@@ -179,6 +180,47 @@ class MailtrapApiTransportTest extends TestCase
         );
 
         $this->assertStringContainsString('Bearer test-token', implode("\n", $flat));
+    }
+
+    /**
+     * An attachment with no filename still yields strings, never nulls.
+     *
+     * @return void
+     */
+    public function testAttachmentWithoutFilenameIsStillDescribed(): void
+    {
+        $payload = $this->capture($this->message()->attach('file contents'))['payload'];
+
+        $file = $payload['attachments'][0];
+
+        $this->assertSame('attachment', $file['filename']);
+        $this->assertSame('attachment', $file['disposition']);
+        $this->assertArrayNotHasKey('content_id', $file);
+    }
+
+    /**
+     * A nested `errors` payload is flattened instead of collapsing into the word “Array”.
+     *
+     * @return void
+     */
+    public function testNestedApiErrorsStayReadable(): void
+    {
+        $client = new MockHttpClient(static function (): MockResponse {
+            return new MockResponse(
+                '{"errors":{"from":["is not a verified sender"],"to":["is blocked"]}}',
+                ['http_code' => 422]
+            );
+        });
+
+        $transport = new MailtrapApiTransport('test-token', null, null, $client);
+
+        $this->expectException(HttpTransportException::class);
+        $this->expectExceptionMessage(
+            'Mailtrap rejected the message: '
+            .'"is not a verified sender, is blocked" (status code 422).'
+        );
+
+        $transport->send($this->message());
     }
 
     /**

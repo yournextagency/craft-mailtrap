@@ -133,7 +133,7 @@ class MailtrapApiTransport extends AbstractApiTransport
             throw new HttpTransportException(
                 sprintf(
                     'Mailtrap rejected the message: "%s" (status code %d).',
-                    implode(', ', (array) ($result['errors'] ?? ['no error message'])),
+                    self::describeErrors($result['errors'] ?? null),
                     $statusCode
                 ),
                 $response
@@ -247,6 +247,30 @@ class MailtrapApiTransport extends AbstractApiTransport
     }
 
     /**
+     * Flattens whatever Mailtrap put in the `errors` field into one readable line.
+     *
+     * @param mixed $errors Value of the `errors` field, of a shape the API does not guarantee
+     *
+     * @return string
+     */
+    private static function describeErrors($errors): string
+    {
+        $values = is_array($errors) ? $errors : [$errors];
+        $flat = [];
+
+        array_walk_recursive(
+            $values,
+            static function ($value) use (&$flat): void {
+                if (null !== $value && '' !== $value) {
+                    $flat[] = (string) $value;
+                }
+            }
+        );
+
+        return [] === $flat ? 'no error message' : implode(', ', $flat);
+    }
+
+    /**
      * Converts the message attachments into Mailtrap's format.
      *
      * @param Email $email The message itself: subject, bodies, recipients, attachments
@@ -270,14 +294,18 @@ class MailtrapApiTransport extends AbstractApiTransport
             $item = [
                 'content' => $attachment->bodyToString(),
                 'type' => $type,
-                'filename' => $filename,
-                'disposition' => $disposition,
+                'filename' => is_string($filename) && '' !== $filename
+                    ? $filename
+                    : 'attachment',
+                'disposition' => is_string($disposition) && '' !== $disposition
+                    ? $disposition
+                    : 'attachment',
             ];
 
-            if ('inline' === $disposition) {
+            if ('inline' === $item['disposition']) {
                 $item['content_id'] = $attachment->hasContentId()
                     ? $attachment->getContentId()
-                    : $filename;
+                    : $item['filename'];
             }
 
             $attachments[] = $item;

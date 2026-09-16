@@ -13,6 +13,7 @@ use craft\behaviors\EnvAttributeParserBehavior;
 use craft\helpers\App;
 use craft\mail\transportadapters\BaseTransportAdapter;
 use Symfony\Component\Mailer\Transport\AbstractTransport;
+use yii\base\InvalidConfigException;
 
 /**
  * Plugs the Mailtrap transport into Craft's mailer settings.
@@ -109,12 +110,31 @@ class MailtrapAdapter extends BaseTransportAdapter
         $host = null;
 
         if (null !== $endpoint && '' !== $endpoint) {
-            $host = parse_url((string) $endpoint, PHP_URL_HOST) ?: null;
+            $endpoint = trim((string) $endpoint);
+
+            // Without a scheme parse_url() reads the whole value as a path and finds no
+            // host, so a bare `bulk.api.mailtrap.io` needs a second attempt.
+            $host = parse_url($endpoint, PHP_URL_HOST)
+                ?: parse_url('https://'.$endpoint, PHP_URL_HOST)
+                ?: $endpoint;
+        }
+
+        $inbox = null;
+
+        if (null !== $inboxId && '' !== $inboxId) {
+            $inbox = filter_var($inboxId, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+            if (false === $inbox) {
+                throw new InvalidConfigException(sprintf(
+                    'The Mailtrap “Inbox ID” setting must be a positive whole number, got “%s”.',
+                    (string) $inboxId
+                ));
+            }
         }
 
         return new MailtrapApiTransport(
             (string) App::parseEnv($this->apiToken),
-            (null !== $inboxId && '' !== $inboxId) ? (int) $inboxId : null,
+            $inbox,
             $host
         );
     }
