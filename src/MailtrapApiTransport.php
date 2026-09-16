@@ -277,6 +277,12 @@ class MailtrapApiTransport extends AbstractApiTransport
     /**
      * Converts the message attachments into Mailtrap's format.
      *
+     * The content id falls back to the filename, which is what an HTML body built with
+     * Email::embed() refers to: an API transport sends the HTML as it stands, without the
+     * cid rewriting Symfony does when it assembles a MIME message. On symfony/mime 6.0 that
+     * fallback is the only possible outcome, because getAttachments() rebuilds every part on
+     * each call and hasContentId() can never be true there.
+     *
      * @param Email $email The message itself: subject, bodies, recipients, attachments
      *
      * @return array<int, array<string, string>>

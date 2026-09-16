@@ -300,6 +300,16 @@ class MailtrapApiTransportTest extends TestCase
     {
         $email = $this->message()->embed('image bytes', 'logo', 'image/png');
 
+        // symfony/mime 6.0 rebuilds every attachment part on each getAttachments() call, so a
+        // content id set beforehand cannot survive to the transport. Detect that directly
+        // rather than by version number: the identity check is the reason itself.
+        if ($email->getAttachments()[0] !== $email->getAttachments()[0]) {
+            $this->markTestSkipped(
+                'This symfony/mime rebuilds attachment parts on every call, '
+                .'so a content id cannot be set through the public API.'
+            );
+        }
+
         // No supported version of symfony/mime has a portable setter for the content id:
         // asking the part for one generates and stores it, which is what makes
         // hasContentId() true. embed() and getAttachments() exist all the way back to 6.0.
