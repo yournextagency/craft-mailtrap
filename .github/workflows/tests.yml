@@ -13,6 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - { php: '8.0', craft: '^4.0' }
           - { php: '8.1', craft: '^4.0' }
           - { php: '8.2', craft: '^4.0' }
           - { php: '8.2', craft: '^5.0' }
@@ -28,8 +29,9 @@ jobs:
           coverage: none
 
       # Craft 4 pins twig/twig ~3.19.0, and the only release in that range carries security
-      # advisories, so Composer 2.10 refuses to install it. That is Craft's own dependency,
-      # not ours: without this the Craft 4 legs never get as far as running our code.
+      # advisories, so Composer 2.10 refuses to install it from scratch. That is Craft's own
+      # dependency, not ours: without this the Craft 4 legs never reach our code. The setting
+      # itself only exists in Composer 2.10 and later, which is what setup-php installs.
       - name: Allow Craft 4's pinned Twig
         if: startsWith(matrix.craft, '^4')
         run: composer config policy.advisories.block false
@@ -39,26 +41,6 @@ jobs:
 
       - name: Run tests
         run: composer test
-
-  floor:
-    name: Dependencies resolve on PHP 8.0
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.0'
-          coverage: none
-
-      # See the note in the test matrix: Craft 4's Twig pin is blocked by default.
-      - name: Allow Craft 4's pinned Twig
-        run: composer config policy.advisories.block false
-
-      # The dev tool chain does not reach back to 8.0, so this only proves that what a user
-      # actually installs still resolves at the version floor the plugin advertises.
-      - name: Resolve runtime dependencies only
-        run: composer update --no-dev --no-interaction --prefer-dist --with craftcms/cms:^4.0
 
   analysis:
     name: Static analysis
