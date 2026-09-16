@@ -7,12 +7,15 @@ on:
 
 jobs:
   tests:
-    name: PHP ${{ matrix.php }} · Craft ${{ matrix.craft }}
+    name: PHP ${{ matrix.php }} · Craft ${{ matrix.craft }} ${{ matrix.deps }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
+          # The oldest environment the plugin claims to support: oldest PHP, oldest Craft and
+          # the oldest dependency set those allow — Symfony Mailer 6.0 and Mime 5.4.
+          - { php: '8.0', craft: '^4.0', deps: '--prefer-lowest' }
           - { php: '8.0', craft: '^4.0' }
           - { php: '8.1', craft: '^4.0' }
           - { php: '8.2', craft: '^4.0' }
@@ -37,7 +40,7 @@ jobs:
         run: composer config policy.advisories.block false
 
       - name: Install dependencies
-        run: composer update --no-interaction --prefer-dist --with craftcms/cms:${{ matrix.craft }}
+        run: composer update --no-interaction --prefer-dist ${{ matrix.deps }} --with craftcms/cms:${{ matrix.craft }}
 
       - name: Run tests
         run: composer test
