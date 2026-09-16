@@ -46,8 +46,12 @@ jobs:
         run: composer test
 
   analysis:
-    name: Static analysis
+    name: Static analysis · Craft ${{ matrix.craft }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        craft: ['^4.0', '^5.0']
     steps:
       - uses: actions/checkout@v4
 
@@ -56,8 +60,15 @@ jobs:
           php-version: '8.3'
           coverage: none
 
+      # The adapter overrides four methods of Craft's base transport adapter, and those
+      # signatures differ between Craft 4 and 5. Analysing against one branch only would
+      # leave half of that promise unchecked.
+      - name: Allow Craft 4's pinned Twig
+        if: startsWith(matrix.craft, '^4')
+        run: composer config policy.advisories.block false
+
       - name: Install dependencies
-        run: composer update --no-interaction --prefer-dist
+        run: composer update --no-interaction --prefer-dist --with craftcms/cms:${{ matrix.craft }}
 
       - name: Run PHPStan
         run: composer phpstan

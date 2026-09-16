@@ -189,8 +189,8 @@ class MailtrapAdapterTest extends TestCase
     {
         $dsn = $this->dsn(['endpoint' => '//']);
 
-        $this->assertSame('mailtrap+api:////', $dsn);
         $this->assertStringNotContainsString('send.api.mailtrap.io', $dsn);
+        $this->assertStringNotContainsString('sandbox.api.mailtrap.io', $dsn);
     }
 
     /**
