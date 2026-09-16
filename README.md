@@ -15,6 +15,12 @@ Mail is sent through the Mailtrap Email API over HTTPS, not SMTP.
 
 This plugin requires Craft CMS 4.0.0+ or 5.0.0+, and PHP 8.0.2+.
 
+> **Note for Craft 4:** Craft 4 pins `twig/twig` to a release that carries security advisories,
+> and Composer 2.10 refuses to install such a package by default. Installing anything into a
+> Craft 4 project with that version of Composer therefore fails before this plugin is reached.
+> Older Composer releases, including the one DDEV ships, only warn. This is a constraint in
+> Craft itself, not in this plugin.
+
 ## Installation
 
 You can install this plugin from the Plugin Store or with Composer.
