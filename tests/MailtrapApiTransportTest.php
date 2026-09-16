@@ -17,6 +17,7 @@ use Symfony\Component\Mailer\Header\MetadataHeader;
 use Symfony\Component\Mailer\Header\TagHeader;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Part\DataPart;
 use yna\mailtrap\MailtrapApiTransport;
 
 /**
@@ -221,6 +222,94 @@ class MailtrapApiTransportTest extends TestCase
         );
 
         $transport->send($this->message());
+    }
+
+    /**
+     * The DSN names the host and, for a sandbox, the inbox behind it.
+     *
+     * Symfony prints this string in logs, so it is how an operator tells a sandbox run from
+     * a live one after the fact.
+     *
+     * @return void
+     */
+    public function testDsnDescribesEachMode(): void
+    {
+        $this->assertSame(
+            'mailtrap+api://send.api.mailtrap.io',
+            (string) new MailtrapApiTransport('test-token')
+        );
+        $this->assertSame(
+            'mailtrap+sandbox://sandbox.api.mailtrap.io?inboxId=1234567',
+            (string) new MailtrapApiTransport('test-token', 1234567)
+        );
+        $this->assertSame(
+            'mailtrap+api://bulk.api.mailtrap.io',
+            (string) new MailtrapApiTransport('test-token', null, 'bulk.api.mailtrap.io')
+        );
+    }
+
+    /**
+     * A reply that is not JSON is reported as such instead of as a decoding failure.
+     *
+     * A proxy or a hosting stub answering with an HTML page is the usual cause, so the
+     * message points at the network rather than at the message.
+     *
+     * @return void
+     */
+    public function testNonJsonReplyIsReported(): void
+    {
+        $client = new MockHttpClient(static function (): MockResponse {
+            return new MockResponse('<html><body>Gateway</body></html>', ['http_code' => 200]);
+        });
+
+        $transport = new MailtrapApiTransport('test-token', null, null, $client);
+
+        $this->expectException(HttpTransportException::class);
+        $this->expectExceptionMessage('Mailtrap returned a response that is not JSON.');
+
+        $transport->send($this->message());
+    }
+
+    /**
+     * A connection that never succeeds is reported as an unreachable server.
+     *
+     * @return void
+     */
+    public function testUnreachableServerIsReported(): void
+    {
+        $client = new MockHttpClient(static function (): MockResponse {
+            return new MockResponse('', ['error' => 'Connection refused']);
+        });
+
+        $transport = new MailtrapApiTransport('test-token', null, null, $client);
+
+        $this->expectException(HttpTransportException::class);
+        $this->expectExceptionMessage('Could not reach the Mailtrap server.');
+
+        $transport->send($this->message());
+    }
+
+    /**
+     * An inline part that carries its own content id keeps it.
+     *
+     * The filename is only a fallback, and using it would break an HTML body that refers to
+     * the image by its real content id.
+     *
+     * @return void
+     */
+    public function testInlineAttachmentKeepsItsOwnContentId(): void
+    {
+        $part = new DataPart('image bytes', 'logo', 'image/png');
+        $part->asInline();
+        $part->setContentId('banner@example.com');
+
+        $email = $this->message();
+        $email->addPart($part);
+
+        $payload = $this->capture($email)['payload'];
+
+        $this->assertSame('inline', $payload['attachments'][0]['disposition']);
+        $this->assertSame('banner@example.com', $payload['attachments'][0]['content_id']);
     }
 
     /**
