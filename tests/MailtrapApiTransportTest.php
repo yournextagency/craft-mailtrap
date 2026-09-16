@@ -301,7 +301,10 @@ class MailtrapApiTransportTest extends TestCase
     {
         $part = new DataPart('image bytes', 'logo', 'image/png');
         $part->asInline();
-        $part->setContentId('banner@example.com');
+
+        // symfony/mime 6.0 has no public setter: asking for the id generates and stores one.
+        // Reading it here is what makes hasContentId() true across every supported version.
+        $contentId = $part->getContentId();
 
         $email = $this->message();
         $email->addPart($part);
@@ -309,7 +312,8 @@ class MailtrapApiTransportTest extends TestCase
         $payload = $this->capture($email)['payload'];
 
         $this->assertSame('inline', $payload['attachments'][0]['disposition']);
-        $this->assertSame('banner@example.com', $payload['attachments'][0]['content_id']);
+        $this->assertSame($contentId, $payload['attachments'][0]['content_id']);
+        $this->assertNotSame('logo', $payload['attachments'][0]['content_id']);
     }
 
     /**
