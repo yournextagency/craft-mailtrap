@@ -60,9 +60,9 @@ class MailtrapApiTransport extends AbstractApiTransport
      * @param string                        $token        API token of the sending domain
      * @param int|null                      $inboxId      Sandbox inbox to deliver into, or null
      * @param string|null                   $endpointHost Host without a scheme, or null
-     * @param HttpClientInterface|null      $client
-     * @param EventDispatcherInterface|null $dispatcher
-     * @param LoggerInterface|null          $logger
+     * @param HttpClientInterface|null      $client       Sender client, built by Symfony if null
+     * @param EventDispatcherInterface|null $dispatcher   Passed to Symfony; fires transport events
+     * @param LoggerInterface|null          $logger       Passed to Symfony for transport logging
      */
     public function __construct(
         #[\SensitiveParameter] private string $token,
@@ -76,7 +76,9 @@ class MailtrapApiTransport extends AbstractApiTransport
     }
 
     /**
-     * @inheritdoc
+     * Returns the DSN Symfony prints in logs and error messages; it is never used to send.
+     *
+     * @return string
      */
     public function __toString(): string
     {
@@ -144,7 +146,8 @@ class MailtrapApiTransport extends AbstractApiTransport
     }
 
     /**
-     * Returns the host to send through.
+     * Returns the host to send through: an explicitly configured one always wins, otherwise
+     * an inbox id selects the sandbox and its absence the transactional stream.
      *
      * @return string
      */
@@ -158,7 +161,8 @@ class MailtrapApiTransport extends AbstractApiTransport
     }
 
     /**
-     * Returns the full URL to POST the message to.
+     * Returns the full URL to POST the message to, with the inbox id appended to the path
+     * when delivering into a sandbox.
      *
      * @return string
      */
@@ -222,7 +226,7 @@ class MailtrapApiTransport extends AbstractApiTransport
     /**
      * Converts a list of addresses into Mailtrap's format.
      *
-     * @param Address[] $addresses
+     * @param Address[] $addresses Addresses to convert, keeping the order of the message
      *
      * @return array<int, array<string, string>>
      */
@@ -234,7 +238,7 @@ class MailtrapApiTransport extends AbstractApiTransport
     /**
      * Converts one address into Mailtrap's format.
      *
-     * @param Address $address
+     * @param Address $address Address to convert; an empty display name is left out
      *
      * @return array<string, string>
      */

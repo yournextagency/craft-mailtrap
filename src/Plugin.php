@@ -13,7 +13,7 @@ use craft\helpers\MailerHelper;
 use yii\base\Event;
 
 /**
- * Mailtrap plugin.
+ * Registers Mailtrap as one of the mailer transports Craft offers in Settings → Email.
  *
  * @author Your Next Agency <developers@yournextagency.com>
  *
@@ -22,6 +22,9 @@ use yii\base\Event;
 class Plugin extends \craft\base\Plugin
 {
     /**
+     * Subscribes to the event Craft fires when it collects mailer transports, and adds the
+     * Mailtrap adapter to the list.
+     *
      * @inheritdoc
      */
     public function init(): void

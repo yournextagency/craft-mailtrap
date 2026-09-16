@@ -226,9 +226,9 @@ class MailtrapApiTransportTest extends TestCase
     /**
      * Sends a message through a fake HTTP client and returns the request it tried to make.
      *
-     * @param Email       $email
-     * @param int|null    $inboxId
-     * @param string|null $endpointHost
+     * @param Email       $email        Message to send through the fake client
+     * @param int|null    $inboxId      Sandbox inbox to target, or null for live sending
+     * @param string|null $endpointHost Host to override the default with, without a scheme
      *
      * @return array<string, mixed>
      */

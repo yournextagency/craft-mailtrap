@@ -48,6 +48,9 @@ class MailtrapAdapter extends BaseTransportAdapter
     }
 
     /**
+     * Attaches Craft’s environment parser to all three settings, which is what lets each of
+     * them be stored as `$MAILTRAP_TOKEN` and resolved per environment at send time.
+     *
      * @inheritdoc
      */
     public function behaviors(): array
@@ -74,6 +77,10 @@ class MailtrapAdapter extends BaseTransportAdapter
     }
 
     /**
+     * Only the token is mandatory. The `url` rule also fills in a missing scheme, so the form
+     * accepts both `bulk.api.mailtrap.io` and the full address — but it runs on save only,
+     * never on values coming from the environment.
+     *
      * @inheritdoc
      *
      * @return array<int, array<int|string, mixed>>
@@ -88,6 +95,8 @@ class MailtrapAdapter extends BaseTransportAdapter
     }
 
     /**
+     * Renders the three-field settings form shown under Settings → Email.
+     *
      * @inheritdoc
      */
     public function getSettingsHtml(): ?string
@@ -98,6 +107,10 @@ class MailtrapAdapter extends BaseTransportAdapter
     }
 
     /**
+     * Resolves the three settings through the environment, normalises the endpoint down to a
+     * bare host and hands it to the transport. Values coming from environment variables have
+     * never been through `defineRules()`, so they are validated here instead.
+     *
      * @inheritdoc
      *
      * @return array<string, mixed>|AbstractTransport
