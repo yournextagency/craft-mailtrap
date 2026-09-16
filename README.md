@@ -70,3 +70,8 @@ MAILTRAP_INBOX_ID=
 ```
 
 An unset or empty `MAILTRAP_INBOX_ID` means live sending.
+
+## Trademarks
+
+Mailtrap is a trademark of its owner. This plugin is an unofficial integration and is
+not affiliated with, endorsed by, or sponsored by Mailtrap.
