@@ -31,12 +31,13 @@ class Plugin extends \craft\base\Plugin
     {
         parent::init();
 
-        // Craft 4 named this event differently.
-        $legacyEvent = sprintf('%s::EVENT_REGISTER_MAILER_TRANSPORT_TYPES', MailerHelper::class);
+        // Craft 4 and Craft 5 name this event differently, and each version defines only its
+        // own constant. Both names are therefore resolved at run time: naming either one
+        // directly would be an undefined constant on the other version.
+        $legacy = sprintf('%s::EVENT_REGISTER_MAILER_TRANSPORT_TYPES', MailerHelper::class);
+        $current = sprintf('%s::EVENT_REGISTER_MAILER_TRANSPORTS', MailerHelper::class);
 
-        $eventName = defined($legacyEvent)
-            ? constant($legacyEvent)
-            : MailerHelper::EVENT_REGISTER_MAILER_TRANSPORTS;
+        $eventName = defined($legacy) ? constant($legacy) : constant($current);
 
         Event::on(
             MailerHelper::class,
