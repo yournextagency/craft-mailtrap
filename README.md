@@ -1,3 +1,5 @@
+<p align="center"><img src="./src/icon.svg" width="100" height="100" alt="Mailtrap for Craft CMS icon"></p>
+
 <h1 align="center">Mailtrap for Craft CMS</h1>
 
 This plugin provides a [Mailtrap](https://mailtrap.io/) integration for [Craft CMS](https://craftcms.com/).
