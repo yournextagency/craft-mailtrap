@@ -2,6 +2,12 @@
 
 <h1 align="center">Mailtrap for Craft CMS</h1>
 
+<p align="center">
+  <a href="https://github.com/yournextagency/craft-mailtrap/actions/workflows/tests.yml"><img
+    src="https://github.com/yournextagency/craft-mailtrap/actions/workflows/tests.yml/badge.svg"
+    alt="Tests"></a>
+</p>
+
 This plugin provides a [Mailtrap](https://mailtrap.io/) integration for [Craft CMS](https://craftcms.com/).
 Mail is sent through the Mailtrap Email API over HTTPS, not SMTP.
 
