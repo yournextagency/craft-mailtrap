@@ -34,6 +34,11 @@
       "yna\\mailtrap\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "yna\\mailtrap\\tests\\": "tests/"
+    }
+  },
   "extra": {
     "name": "Mailtrap",
     "handle": "mailtrap",
