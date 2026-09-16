@@ -39,6 +39,15 @@ composer require yournextagency/craft-mailtrap
 ./craft install/plugin mailtrap
 ```
 
+#### With DDEV
+
+Composer and Craft both run inside the container, so prefix the commands:
+
+```bash
+ddev composer require yournextagency/craft-mailtrap
+ddev craft install/plugin mailtrap
+```
+
 ## Setup
 
 Once Mailtrap is installed, go to Settings → Email and change the “Transport Type”
