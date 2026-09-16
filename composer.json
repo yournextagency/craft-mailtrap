@@ -14,6 +14,7 @@
     "email": "developers@yournextagency.com",
     "issues": "https://github.com/yournextagency/craft-mailtrap/issues?state=open",
     "source": "https://github.com/yournextagency/craft-mailtrap",
+    "rss": "https://github.com/yournextagency/craft-mailtrap/commits/master.atom",
     "docs": "https://github.com/yournextagency/craft-mailtrap/blob/master/README.md"
   },
   "minimum-stability": "dev",
