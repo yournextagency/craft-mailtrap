@@ -72,3 +72,30 @@ jobs:
 
       - name: Run PHPStan
         run: composer phpstan
+
+  standard:
+    name: Coding standard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      # Packagist and the Plugin Store read composer.json as it stands in the tag, so a
+      # mistake in it is only discoverable after the tag exists. This runs before anything
+      # is installed, which is also why no Composer plugin can interfere with it.
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      # The YNA standard ships as a Docker action rather than a Composer package, so it
+      # brings its own phpcs instead of using the one the other jobs install. The paths
+      # mirror the two <file> entries in phpcs.xml; the default ignore list would have
+      # skipped tests/, which phpcs.xml checks.
+      - name: Run phpcs
+        uses: yournextagency/github-actions-php@master
+        with:
+          phpcs_paths: './src ./tests'
+          phpcs_ignore_paths: 'vendor/*'
