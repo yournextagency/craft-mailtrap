@@ -171,15 +171,24 @@ class MailtrapApiTransportTest extends TestCase
      */
     public function testTokenIsSentAsBearer(): void
     {
-        $flat = [];
-        array_walk_recursive(
-            $this->capture($this->message())['headers'],
-            static function ($value) use (&$flat): void {
-                $flat[] = (string) $value;
-            }
-        );
+        $headers = implode("\n", $this->headerLines($this->capture($this->message())));
 
-        $this->assertStringContainsString('Bearer test-token', implode("\n", $flat));
+        $this->assertStringContainsString('Bearer test-token', $headers);
+    }
+
+    /**
+     * The request declares the JSON content type Mailtrap's API documents as required.
+     *
+     * Symfony adds the header when a body is handed over as `json`, so this pins the option
+     * the transport chose rather than any string handling of our own.
+     *
+     * @return void
+     */
+    public function testRequestIsSentAsJson(): void
+    {
+        $headers = implode("\n", $this->headerLines($this->capture($this->message())));
+
+        $this->assertMatchesRegularExpression('#^content-type:\s*application/json#im', $headers);
     }
 
     /**
@@ -320,6 +329,27 @@ class MailtrapApiTransportTest extends TestCase
         $this->assertSame('inline', $payload['attachments'][0]['disposition']);
         $this->assertSame($contentId, $payload['attachments'][0]['content_id']);
         $this->assertNotSame('logo', $payload['attachments'][0]['content_id']);
+    }
+
+    /**
+     * Flattens the header structure of a captured request into plain lines.
+     *
+     * @param array<string, mixed> $captured Request as returned by capture()
+     *
+     * @return array<int, string>
+     */
+    private function headerLines(array $captured): array
+    {
+        $lines = [];
+
+        array_walk_recursive(
+            $captured['headers'],
+            static function ($value) use (&$lines): void {
+                $lines[] = (string) $value;
+            }
+        );
+
+        return $lines;
     }
 
     /**
