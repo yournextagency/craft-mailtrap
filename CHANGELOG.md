@@ -1,6 +1,6 @@
 # Release Notes for Mailtrap for Craft CMS
 
-## 1.0.0 - 2026-09-16
+## 1.0.0 - 2026-09-28
 
 ### Added
 - Mailtrap transport adapter for Craft’s mailer, sending over the Mailtrap Email API.
