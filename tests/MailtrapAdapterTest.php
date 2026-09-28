@@ -133,28 +133,45 @@ class MailtrapAdapterTest extends TestCase
     }
 
     /**
-     * Settings stored as environment variables are resolved before use.
+     * An endpoint stored as an environment variable is resolved before use.
      *
      * This is the path the control panel actually stores: project config holds the literal
      * `$MAILTRAP_ENDPOINT`, and the real value only appears at send time.
      *
      * @return void
      */
-    public function testEnvironmentVariablesAreResolved(): void
+    public function testEndpointComesFromTheEnvironment(): void
     {
         putenv('MAILTRAP_TEST_ENDPOINT=bulk.api.mailtrap.io');
+
+        try {
+            $this->assertSame(
+                'mailtrap+api://bulk.api.mailtrap.io',
+                $this->dsn(['endpoint' => '$MAILTRAP_TEST_ENDPOINT'])
+            );
+        } finally {
+            putenv('MAILTRAP_TEST_ENDPOINT');
+        }
+    }
+
+    /**
+     * An inbox id stored as an environment variable is resolved before use.
+     *
+     * This is what makes one plugin configuration serve every environment: staging sets the
+     * variable and delivers into the sandbox, production leaves it unset and sends for real.
+     *
+     * @return void
+     */
+    public function testInboxIdComesFromTheEnvironment(): void
+    {
         putenv('MAILTRAP_TEST_INBOX=1486708');
 
         try {
             $this->assertSame(
-                'mailtrap+sandbox://bulk.api.mailtrap.io?inboxId=1486708',
-                $this->dsn([
-                    'endpoint' => '$MAILTRAP_TEST_ENDPOINT',
-                    'inboxId' => '$MAILTRAP_TEST_INBOX',
-                ])
+                'mailtrap+sandbox://sandbox.api.mailtrap.io?inboxId=1486708',
+                $this->dsn(['inboxId' => '$MAILTRAP_TEST_INBOX'])
             );
         } finally {
-            putenv('MAILTRAP_TEST_ENDPOINT');
             putenv('MAILTRAP_TEST_INBOX');
         }
     }
