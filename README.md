@@ -23,16 +23,34 @@ This plugin requires Craft CMS 4.0.0+ or 5.0.0+, and PHP 8.0.2+.
 
 ## Installation
 
-You can install this plugin from the Plugin Store or with Composer.
+> **Not published yet.** The plugin is not on Packagist or in the Craft Plugin Store so far,
+> so Composer cannot find it by name alone. Until it is, install it from its Git repository
+> as described under “With Composer” below.
 
 #### From the Plugin Store
 
-Go to the Plugin Store in your project’s Control Panel and search for “Mailtrap”.
-Then click on the “Install” button in its modal window.
+*Not available yet.* Once the plugin is approved, you will be able to go to the Plugin Store
+in your project’s Control Panel, search for “Mailtrap” and click the “Install” button in its
+modal window.
 
 #### With Composer
 
-Open your terminal and run the following commands:
+First tell Composer where the plugin lives, by adding its repository to your project’s
+`composer.json`:
+
+```json
+"repositories": [
+  {
+    "type": "vcs",
+    "url": "https://github.com/yournextagency/craft-mailtrap.git"
+  }
+]
+```
+
+Composer then reads the plugin’s tags straight from GitHub and installs the newest one. The
+repository is public, so no token or SSH key is involved.
+
+Then open your terminal and run the following commands:
 
 ```bash
 # go to the project directory
@@ -45,6 +63,8 @@ composer require yournextagency/craft-mailtrap
 ./craft install/plugin mailtrap
 ```
 
+Add `:1.0.0` to the package name to pin an exact release instead of taking the newest tag.
+
 #### With DDEV
 
 Composer and Craft both run inside the container, so prefix the commands:
@@ -53,6 +73,9 @@ Composer and Craft both run inside the container, so prefix the commands:
 ddev composer require yournextagency/craft-mailtrap
 ddev craft install/plugin mailtrap
 ```
+
+Once the plugin is published on Packagist, the `repositories` entry becomes unnecessary and
+can be removed; the commands above keep working unchanged.
 
 ## Setup
 
